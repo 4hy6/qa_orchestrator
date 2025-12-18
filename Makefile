@@ -24,3 +24,6 @@ clean: ## Clean up cache and temporary files
 	rm -rf .ruff_cache
 	rm -rf .coverage
 	find . -type d -name "__pycache__" -exec rm -rf {} +
+
+check: ## Run code quality tools
+	uv run pre-commit run --all-files
