@@ -1,29 +1,41 @@
-.PHONY: all help install lint format test clean
 
-# Default target
-all: install lint test
+# CONFIGURATION
+PYTHON_VERSION := 3.12
+VENV_DIR       := .venv
+CMD            := uv run
 
-help: ## Show this help message
-	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-20s\033[0m %s\n", $$1, $$2}'
 
-install: ## Install dependencies using uv
+.PHONY: help install lint format test clean check
+
+help:
+	@echo "Usage: make [target]"
+	@echo ""
+	@echo "Targets:"
+	@echo "  install    Install dependencies (Python $(PYTHON_VERSION))"
+	@echo "  lint       Run static analysis (Ruff)"
+	@echo "  format     Auto-format code"
+	@echo "  test       Run tests"
+	@echo "  clean      Remove cache files"
+	@echo "  check      Run full QA pipeline"
+
+install:
+	@echo "Installing dependencies..."
+	uv python pin $(PYTHON_VERSION)
 	uv sync
 
-lint: ## Run code quality tools (Ruff)
-	uv run ruff check .
+lint:
+	$(CMD) ruff check .
 
-format: ## Auto-format code (Ruff)
-	uv run ruff format .
+format:
+	$(CMD) ruff check --fix .
+	$(CMD) ruff format .
 
-test: ## Run tests (Pytest)
-	uv run pytest -v
+test:
+	$(CMD) pytest tests -v
 
-clean: ## Clean up cache and temporary files
-	rm -rf .venv
-	rm -rf .pytest_cache
-	rm -rf .ruff_cache
-	rm -rf .coverage
+clean:
 	find . -type d -name "__pycache__" -exec rm -rf {} +
+	find . -type f -name "*.pyc" -delete
+	rm -rf .pytest_cache .ruff_cache .coverage
 
-check: ## Run code quality tools
-	uv run pre-commit run --all-files
+check: format lint test
