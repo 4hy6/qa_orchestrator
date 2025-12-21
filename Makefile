@@ -88,3 +88,8 @@ docker-clean:
 	@echo "[docker-clean] Deep cleaning Docker resources..."
 	docker system prune -f
 	docker rmi $$(docker images -f "dangling=true" -q) 2>/dev/null || true
+
+docker-dev:
+	docker run --rm \
+		-v $(PWD)/app:/app/app \
+		$(IMAGE_NAME) python -m app.main
