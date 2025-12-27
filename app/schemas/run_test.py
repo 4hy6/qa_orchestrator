@@ -1,9 +1,9 @@
-from enum import Enum
+from enum import StrEnum
 
 from pydantic import BaseModel, Field, PositiveInt
 
 
-class BrowserType(str, Enum):
+class BrowserType(StrEnum):
     """Supported browser types for UI testing."""
 
     CHROME = "chrome"
