@@ -12,7 +12,7 @@ TAG            := latest
 # ==============================================================================
 .PHONY: help install clean
 .PHONY: lint format type-check check test
-.PHONY: docker-build docker-run docker-clean
+.PHONY: docker-build docker-run docker-clean docker-dev
 
 # ==============================================================================
 # HELP & DOCS
@@ -22,19 +22,20 @@ help:
 	@echo ""
 	@echo "Core Targets:"
 	@echo "  install        Install dependencies and pin Python version"
-	@echo "  clean          Remove all cache, venv, and temporary files"
+	@echo "  clean          Remove all cache, venv, coverage and temporary files"
 	@echo ""
 	@echo "QA & Code Quality:"
 	@echo "  format         Auto-format code (Ruff)"
 	@echo "  lint           Run static code analysis (Ruff)"
 	@echo "  type-check     Run static type checking (Mypy)"
-	@echo "  test           Run unit tests (Pytest)"
+	@echo "  test           Run tests with Coverage (configured in pyproject.toml)"
 	@echo "  check          Run FULL pipeline: format -> lint -> type -> test"
 	@echo ""
 	@echo "Docker Targets:"
 	@echo "  docker-build   Build optimized multi-stage image"
 	@echo "  docker-run     Run container with auto-cleanup (--rm)"
 	@echo "  docker-clean   Remove dangling images and system prune"
+	@echo "  docker-dev     Run container with bind mounts (Hot Reload)"
 
 # ==============================================================================
 # CORE
@@ -45,10 +46,11 @@ install:
 	uv sync
 
 clean:
-	@echo "[clean] Cleaning up caches and artifacts..."
+	@echo "[clean] Cleaning up caches, coverage and artifacts..."
 	find . -type d -name "__pycache__" -exec rm -rf {} +
 	find . -type f -name "*.pyc" -delete
-	rm -rf .pytest_cache .ruff_cache .coverage .mypy_cache $(VENV_DIR)
+	# Added htmlcov and coverage.xml to cleanup
+	rm -rf .pytest_cache .ruff_cache .coverage .mypy_cache htmlcov coverage.xml $(VENV_DIR)
 
 # ==============================================================================
 # QA PIPELINE
@@ -64,11 +66,12 @@ lint:
 
 type-check:
 	@echo "[type-check] Running Type Checker (Mypy)..."
-	$(CMD) mypy app config
+	$(CMD) mypy .
 
 test:
-	@echo "[test] Running Tests (Pytest)..."
-	$(CMD) pytest tests -v
+	@echo "[test] Running Tests (Pytest + Coverage)..."
+	# Arguments are now loaded from pyproject.toml
+	$(CMD) pytest
 
 check: format lint type-check test
 	@echo "[check] All checks passed!"
@@ -90,6 +93,7 @@ docker-clean:
 	docker rmi $$(docker images -f "dangling=true" -q) 2>/dev/null || true
 
 docker-dev:
+	@echo "[docker-dev] Starting Dev Container..."
 	docker run --rm \
 		-v $(PWD)/app:/app/app \
-		$(IMAGE_NAME) python -m app.main
+		$(IMAGE_NAME):$(TAG) python -m app.main
