@@ -1,26 +1,32 @@
 import platform
 import sys
 
-from app.schemas import ContentType, HttpMethod
+from app.schemas.run_test import BrowserType, TestRunRequest
+from config.logger import logger
+from config.settings import settings
 
 
 def main() -> None:
-    """
-    Entry point for the application sanity checks.
-    """
-    print(f"Python Version: {sys.version}")
-    print(f"Platform: {platform.platform()}")
+    logger.info("Starting QA Orchestrator Diagnostics...")
 
-    # Verify Enums usage
-    print("\n--- HTTP Constants Check ---")
-    print(f"Method: {HttpMethod.POST} (Type: {type(HttpMethod.POST)})")
-    print(f"Header: {ContentType.JSON}")
+    # 1. System Info
+    logger.debug(f"Python Version: {sys.version}")
+    logger.debug(f"Platform: {platform.system()} {platform.release()}")
 
-    # Demonstration of equality check
-    if HttpMethod.GET == "GET":
-        print("SUCCESS: StrEnum works as a string.")
-    else:
-        print("ERROR: StrEnum implementation is incorrect.")
+    # 2. Settings Check
+    logger.info(f"Environment: {settings.app_env}")
+    logger.info(f"Target API: {settings.base_url}")
+
+    # 3. Logic Check (Pydantic)
+    try:
+        logger.info("Validating sample request model...")
+        sample_request = TestRunRequest(
+            test_suite="Smoke Tests", browser=BrowserType.CHROME
+        )
+        logger.success(f"Model Validated: {sample_request.model_dump_json()}")
+    except Exception as e:
+        logger.critical(f"Validation failed: {e}")
+        sys.exit(1)
 
 
 if __name__ == "__main__":
