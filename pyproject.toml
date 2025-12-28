@@ -5,7 +5,9 @@ description = "Add your description here"
 readme = "README.md"
 requires-python = ">=3.11"
 dependencies = [
+    "loguru>=0.7.3",
     "pydantic>=2.12.5",
+    "pydantic-settings>=2.12.0",
 ]
 
 [dependency-groups]
@@ -13,6 +15,7 @@ dev = [
     "mypy>=1.19.1",
     "pre-commit>=4.5.1",
     "pytest>=9.0.2",
+    "pytest-cov>=7.0.0",
     "ruff>=0.14.9",
 ]
 
@@ -42,3 +45,14 @@ python_version = "3.12"
 strict = true
 ignore_missing_imports = true
 exclude = ["venv", ".venv", "tests"]
+
+
+[tool.pytest.ini_options]
+addopts = "--cov=app --cov=config --cov-report=term-missing --cov-report=html"
+testpaths = ["tests"]
+
+[tool.coverage.run]
+omit = [
+    "tests/*",
+    "app/main.py",
+]
