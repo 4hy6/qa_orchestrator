@@ -1,32 +1,34 @@
-import platform
-import sys
+from loguru import logger
 
-from app.schemas.run_test import BrowserType, TestRunRequest
-from config.logger import logger
+from app.clients.base import BaseClient
+from app.exceptions import APIClientError
+from config.logger import configure_logging
 from config.settings import settings
 
 
-def main() -> None:
-    logger.info("Starting QA Orchestrator Diagnostics...")
+def main():
+    configure_logging()
 
-    # 1. System Info
-    logger.debug(f"Python Version: {sys.version}")
-    logger.debug(f"Platform: {platform.system()} {platform.release()}")
+    logger.info("Starting Application...")
 
-    # 2. Settings Check
     logger.info(f"Environment: {settings.app_env}")
-    logger.info(f"Target API: {settings.base_url}")
+    logger.info(f"Log Level: {settings.log_level}")
+    logger.info(f"Base URL: {settings.base_url}")
 
-    # 3. Logic Check (Pydantic)
+    client = BaseClient(base_url=str(settings.base_url))
+
     try:
-        logger.info("Validating sample request model...")
-        sample_request = TestRunRequest(
-            test_suite="Smoke Tests", browser=BrowserType.CHROME
-        )
-        logger.success(f"Model Validated: {sample_request.model_dump_json()}")
+        logger.info("Executing API Request...")
+        response = client.get("/ping")
+
+        logger.info(f"Status Code: {response.status_code}")
+        logger.debug(f"Response Text: {response.text}")
+
+    except APIClientError as e:
+        logger.warning(f"API is unavailable or failed: {e}")
+
     except Exception as e:
-        logger.critical(f"Validation failed: {e}")
-        sys.exit(1)
+        logger.critical(f"Unexpected System Crash: {e}")
 
 
 if __name__ == "__main__":
