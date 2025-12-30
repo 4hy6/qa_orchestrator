@@ -95,5 +95,6 @@ docker-clean:
 docker-dev:
 	@echo "[docker-dev] Starting Dev Container..."
 	docker run --rm \
-		-v $(PWD)/app:/app/app \
+		-v $(PWD):/app \
+		-v /app/.venv \
 		$(IMAGE_NAME):$(TAG) python -m app.main

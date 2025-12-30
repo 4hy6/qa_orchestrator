@@ -26,5 +26,6 @@ WORKDIR /app
 # Copy only the virtual environment from builder
 COPY --from=builder /app/.venv /app/.venv
 COPY app/ ./app/
+COPY config/ ./config/
 
 CMD ["python", "-m", "app"]
