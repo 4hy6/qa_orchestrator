@@ -5,6 +5,8 @@ import requests
 from loguru import logger
 from pydantic import BaseModel
 from requests import Response, Session
+from requests.adapters import HTTPAdapter
+from urllib3.util.retry import Retry
 
 from app.exceptions import APIClientError
 from app.schemas.common import HttpMethod
@@ -13,13 +15,28 @@ from app.schemas.common import HttpMethod
 class BaseClient:
     """
     Base class for all API clients.
-    Wraps requests.Session to handle connection pooling, logging, and error handling.
-    Now supports automatic Pydantic model serialization.
+    Wraps requests.Session to handle connection pooling, logging, retries,
+    and error handling.
     """
 
     def __init__(self, base_url: str) -> None:
         self.base_url = base_url
         self.session: Session = requests.Session()
+
+        # --- RETRY STRATEGY SETUP ---
+        retries = Retry(
+            total=3,
+            backoff_factor=0.3,
+            status_forcelist=[500, 502, 503, 504],
+            allowed_methods=["GET", "POST", "PUT", "DELETE", "PATCH"],
+            raise_on_status=False,
+        )
+
+        adapter = HTTPAdapter(max_retries=retries)
+
+        self.session.mount("http://", adapter)
+        self.session.mount("https://", adapter)
+        # ----------------------------
 
     def _request(self, method: str, endpoint: str, **kwargs: Any) -> Response:
         """
@@ -34,17 +51,41 @@ class BaseClient:
         )
 
         try:
-            response = self.session.request(method=method, url=url, **kwargs)
+            # Added timeout: 10s connect, 30s read
+            response = self.session.request(
+                method=method, url=url, timeout=(10, 30), **kwargs
+            )
 
             logger.debug(
                 f"Response: {response.status_code} | "
                 f"Time: {response.elapsed.total_seconds()}s"
             )
+
+            try:
+                response.raise_for_status()
+            except requests.HTTPError as e:
+                logger.error(
+                    f"HTTP Error: {e.response.status_code} {e.response.reason} "
+                    f"for {method} {url}"
+                )
+                raise APIClientError(
+                    message=f"API Error {e.response.status_code}: {e}",
+                    status_code=e.response.status_code,
+                    payload=self._get_error_payload(e.response),
+                ) from e
+
             return response
 
         except requests.RequestException as e:
-            logger.error(f"Request failed: {method} {url} | Error: {e}")
+            logger.error(f"Network Request failed: {method} {url} | Error: {e}")
             raise APIClientError(f"Network error during {method} {url}") from e
+
+    def _get_error_payload(self, response: Response) -> dict[str, Any] | None:
+        """Helper to safely extract JSON from error response."""
+        try:
+            return response.json()
+        except Exception:
+            return None
 
     def _prepare_payload(
         self, payload: BaseModel | dict | None
