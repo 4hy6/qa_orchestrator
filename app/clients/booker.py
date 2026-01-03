@@ -31,3 +31,34 @@ class BookerClient(BaseClient):
 
         response.raise_for_status()
         return BookingResponse(**response.json())
+
+    def get_booking(self, booking_id: int) -> Booking:
+        """
+        Retrieves a specific booking by ID.
+        """
+        response = self.get(endpoint=f"/booking/{booking_id}")
+        response.raise_for_status()
+        return Booking(**response.json())
+
+    def update_booking(
+        self, booking_id: int, booking_data: Booking, token: str
+    ) -> Booking:
+        """
+        Updates an existing booking. Requires auth token in Cookie.
+        """
+        headers = {"Cookie": f"token={token}"}
+
+        response = self.put(
+            endpoint=f"/booking/{booking_id}", payload=booking_data, headers=headers
+        )
+        response.raise_for_status()
+        return Booking(**response.json())
+
+    def delete_booking(self, booking_id: int, token: str) -> None:
+        """
+        Deletes a booking. Returns nothing (201 Created).
+        """
+        headers = {"Cookie": f"token={token}"}
+
+        response = self.delete(endpoint=f"/booking/{booking_id}", headers=headers)
+        response.raise_for_status()
