@@ -18,8 +18,6 @@ class BookerClient(BaseClient):
 
         response = self.post(endpoint="/auth", payload=payload)
 
-        response.raise_for_status()
-
         auth_response = AuthResponse(**response.json())
         return auth_response.token
 
@@ -29,7 +27,6 @@ class BookerClient(BaseClient):
         """
         response = self.post(endpoint="/booking", payload=booking_data)
 
-        response.raise_for_status()
         return BookingResponse(**response.json())
 
     def get_booking(self, booking_id: int) -> Booking:
@@ -37,7 +34,6 @@ class BookerClient(BaseClient):
         Retrieves a specific booking by ID.
         """
         response = self.get(endpoint=f"/booking/{booking_id}")
-        response.raise_for_status()
         return Booking(**response.json())
 
     def update_booking(
@@ -51,7 +47,6 @@ class BookerClient(BaseClient):
         response = self.put(
             endpoint=f"/booking/{booking_id}", payload=booking_data, headers=headers
         )
-        response.raise_for_status()
         return Booking(**response.json())
 
     def delete_booking(self, booking_id: int, token: str) -> None:
@@ -60,5 +55,4 @@ class BookerClient(BaseClient):
         """
         headers = {"Cookie": f"token={token}"}
 
-        response = self.delete(endpoint=f"/booking/{booking_id}", headers=headers)
-        response.raise_for_status()
+        self.delete(endpoint=f"/booking/{booking_id}", headers=headers)
