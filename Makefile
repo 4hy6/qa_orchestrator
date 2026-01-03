@@ -85,7 +85,7 @@ docker-build:
 
 docker-run:
 	@echo "[docker-run] Starting container: $(IMAGE_NAME)"
-	docker run --rm --name $(IMAGE_NAME)-container $(IMAGE_NAME):$(TAG)
+	docker run --rm --env-file .env --name $(IMAGE_NAME)-container $(IMAGE_NAME):$(TAG)
 
 docker-clean:
 	@echo "[docker-clean] Deep cleaning Docker resources..."

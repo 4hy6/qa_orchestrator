@@ -28,4 +28,4 @@ COPY --from=builder /app/.venv /app/.venv
 COPY app/ ./app/
 COPY config/ ./config/
 
-CMD ["python", "-m", "app"]
+CMD ["python", "-m", "app.main"]
