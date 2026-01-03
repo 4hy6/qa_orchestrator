@@ -1,5 +1,8 @@
 from enum import StrEnum
 
+from pydantic import BaseModel, ConfigDict
+from pydantic.alias_generators import to_camel
+
 
 class HttpMethod(StrEnum):
     """
@@ -26,3 +29,17 @@ class ContentType(StrEnum):
     FORM_URLENCODED = "application/x-www-form-urlencoded"
     MULTIPART = "multipart/form-data"
     TEXT = "text/plain"
+
+
+class BaseSchema(BaseModel):
+    """
+    Base schema for EXTERNAL APIs (e.g., Restful-Booker).
+    Automatically handles snake_case (Python) <-> camelCase (JSON) conversion.
+    """
+
+    model_config = ConfigDict(
+        alias_generator=to_camel,
+        populate_by_name=True,
+        from_attributes=True,
+        extra="ignore",
+    )

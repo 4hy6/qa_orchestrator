@@ -13,6 +13,9 @@ class Settings(BaseSettings):
         default="INFO"
     )
 
+    booker_username: str = Field(description="Username for Booker API")
+    booker_password: str = Field(description="Password for Booker API")
+
     model_config = SettingsConfigDict(
         env_file=".env",
         env_file_encoding="utf-8",

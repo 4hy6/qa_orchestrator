@@ -3,6 +3,7 @@ from urllib.parse import urljoin
 
 import requests
 from loguru import logger
+from pydantic import BaseModel
 from requests import Response, Session
 
 from app.exceptions import APIClientError
@@ -13,6 +14,7 @@ class BaseClient:
     """
     Base class for all API clients.
     Wraps requests.Session to handle connection pooling, logging, and error handling.
+    Now supports automatic Pydantic model serialization.
     """
 
     def __init__(self, base_url: str) -> None:
@@ -22,17 +24,6 @@ class BaseClient:
     def _request(self, method: str, endpoint: str, **kwargs: Any) -> Response:
         """
         Internal method to execute HTTP requests with logging and error handling.
-
-        Args:
-            method: HTTP method (GET, POST, PUT, DELETE, etc.)
-            endpoint: API endpoint (e.g. "/auth")
-            **kwargs: Additional arguments for requests (json, params, headers)
-
-        Returns:
-            requests.Response object
-
-        Raises:
-            APIClientError: If the request fails (network error, timeout)
         """
         url = urljoin(self.base_url, endpoint)
 
@@ -55,17 +46,41 @@ class BaseClient:
             logger.error(f"Request failed: {method} {url} | Error: {e}")
             raise APIClientError(f"Network error during {method} {url}") from e
 
+    def _prepare_payload(
+        self, payload: BaseModel | dict | None
+    ) -> dict[str, Any] | None:
+        """
+        Helper: Converts Pydantic models to dicts ready for JSON serialization.
+        Enforces by_alias=True and mode='json' globally.
+        """
+        if payload is None:
+            return None
+
+        if isinstance(payload, BaseModel):
+            return payload.model_dump(by_alias=True, mode="json")
+
+        return payload
+
     def get(self, endpoint: str, **kwargs: Any) -> Response:
         return self._request(HttpMethod.GET, endpoint, **kwargs)
 
-    def post(self, endpoint: str, **kwargs: Any) -> Response:
-        return self._request(HttpMethod.POST, endpoint, **kwargs)
+    def post(
+        self, endpoint: str, payload: BaseModel | dict | None = None, **kwargs: Any
+    ) -> Response:
+        json_data = self._prepare_payload(payload)
+        return self._request(HttpMethod.POST, endpoint, json=json_data, **kwargs)
 
-    def put(self, endpoint: str, **kwargs: Any) -> Response:
-        return self._request(HttpMethod.PUT, endpoint, **kwargs)
+    def put(
+        self, endpoint: str, payload: BaseModel | dict | None = None, **kwargs: Any
+    ) -> Response:
+        json_data = self._prepare_payload(payload)
+        return self._request(HttpMethod.PUT, endpoint, json=json_data, **kwargs)
+
+    def patch(
+        self, endpoint: str, payload: BaseModel | dict | None = None, **kwargs: Any
+    ) -> Response:
+        json_data = self._prepare_payload(payload)
+        return self._request(HttpMethod.PATCH, endpoint, json=json_data, **kwargs)
 
     def delete(self, endpoint: str, **kwargs: Any) -> Response:
         return self._request(HttpMethod.DELETE, endpoint, **kwargs)
-
-    def patch(self, endpoint: str, **kwargs: Any) -> Response:
-        return self._request(HttpMethod.PATCH, endpoint, **kwargs)
