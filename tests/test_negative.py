@@ -20,14 +20,31 @@ class NegativeScenario(BaseModel):
     case: str
     payload_update: dict[str, Any]
     expected_status: int
+    xfail: bool = False  # New field for known bugs
 
 
-def load_scenarios() -> list[NegativeScenario]:
-    """Helper to load and VALIDATE scenarios from JSON."""
+def load_scenarios() -> list[Any]:
+    """
+    Helper to load and VALIDATE scenarios from JSON.
+    Returns a list of pytest.param objects with markers applied if needed.
+    """
     path = Path(__file__).parent / "data" / "negative_scenarios.json"
+    scenarios = []
+
     with open(path, encoding="utf-8") as f:
         data = json.load(f)
-        return [NegativeScenario(**item) for item in data]
+        for item in data:
+            scenario = NegativeScenario(**item)
+            if scenario.xfail:
+                scenarios.append(
+                    pytest.param(
+                        scenario, marks=pytest.mark.xfail(reason="Known API Bug")
+                    )
+                )
+            else:
+                scenarios.append(scenario)
+
+    return scenarios
 
 
 @allure.feature("Booking Operations")
