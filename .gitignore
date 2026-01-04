@@ -56,3 +56,7 @@ cover/
 .vscode/
 *.swp
 *.swo
+
+# Allure reports
+allure-results/
+allure-report/
