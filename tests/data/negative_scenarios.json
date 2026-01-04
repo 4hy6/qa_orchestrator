@@ -1,17 +1,23 @@
 [
-  {
-    "case": "Invalid firstname (type mismatch)",
-    "payload_update": {"firstname": 123},
-    "expected_status": 500
-  },
-  {
-    "case": "Invalid totalprice (string instead of int)",
-    "payload_update": {"totalprice": "one hundred"},
-    "expected_status": 200
-  },
-  {
-    "case": "Empty firstname",
-    "payload_update": {"firstname": ""},
-    "expected_status": 200
-  }
+  { "case": "Invalid firstname (int)", "payload_update": {"firstname": 123}, "expected_status": 500 },
+  { "case": "Invalid totalprice (string)", "payload_update": {"totalprice": "one hundred"}, "expected_status": 200 },
+  { "case": "Empty firstname", "payload_update": {"firstname": ""}, "expected_status": 500 },
+  { "case": "Empty lastname", "payload_update": {"lastname": ""}, "expected_status": 500 },
+  { "case": "Extremely long firstname", "payload_update": {"firstname": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"}, "expected_status": 200 },
+  { "case": "Special characters in firstname", "payload_update": {"firstname": "!@#$%^&*()"}, "expected_status": 200 },
+  { "case": "Numeric lastname", "payload_update": {"lastname": 99999}, "expected_status": 500 },
+  { "case": "Negative totalprice", "payload_update": {"totalprice": -1}, "expected_status": 200 },
+  { "case": "Zero totalprice", "payload_update": {"totalprice": 0}, "expected_status": 200 },
+  { "case": "Float totalprice", "payload_update": {"totalprice": 150.55}, "expected_status": 200 },
+  { "case": "Boolean firstname", "payload_update": {"firstname": true}, "expected_status": 500 },
+  { "case": "Null firstname", "payload_update": {"firstname": null}, "expected_status": 500 },
+  { "case": "Invalid date format", "payload_update": {"bookingdates": {"checkin": "01-01-2024", "checkout": "2024/01/01"}}, "expected_status": 200 },
+  { "case": "Checkout before checkin", "payload_update": {"bookingdates": {"checkin": "2024-01-10", "checkout": "2024-01-01"}}, "expected_status": 200 },
+  { "case": "Future year checkin", "payload_update": {"bookingdates": {"checkin": "3000-01-01", "checkout": "3000-01-10"}}, "expected_status": 200 },
+  { "case": "Non-boolean depositpaid", "payload_update": {"depositpaid": "yes"}, "expected_status": 200 },
+  { "case": "Missing additionalneeds", "payload_update": {"additionalneeds": null}, "expected_status": 200 },
+  { "case": "Space in firstname", "payload_update": {"firstname": "John Doe"}, "expected_status": 200 },
+  { "case": "Very large totalprice", "payload_update": {"totalprice": 999999999}, "expected_status": 200 },
+  { "case": "Emoji in firstname", "payload_update": {"firstname": "🤖"}, "expected_status": 200 },
+  { "case": "SQL Injection attempt", "payload_update": {"firstname": "'; DROP TABLE bookings;--"}, "expected_status": 200 }
 ]
