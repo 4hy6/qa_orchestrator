@@ -1,8 +1,30 @@
-.venv
+# Git
 .git
-.vscode
+.gitignore
+.gitattributes
+
+# Environments & Configs
+.env
+.env.*
+!.env.example
+.venv
 .python-version
+# uv.lock <-- НУЖЕН для сборки! Не игнорируем.
+
+# Python & Caches
 __pycache__
 *.py[cod]
-.pytest_cache
-.ruff_cache
+*.so
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+.coverage
+htmlcov/
+coverage.xml
+
+# IDE
+.vscode
+.idea
+
+# Logs & Temp
+*.log
