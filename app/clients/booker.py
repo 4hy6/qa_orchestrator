@@ -43,7 +43,24 @@ class BookerClient(BaseClient):
         )
         return Booking(**response.json())
 
+    @allure.step("Partial update booking (PATCH)")
+    def partial_update_booking(
+        self, booking_id: int, payload: dict, token: str
+    ) -> Booking:
+        headers = {"Cookie": f"token={token}"}
+        response = self.patch(
+            endpoint=f"{self.BOOKING_ENDPOINT}/{booking_id}",
+            payload=payload,
+            headers=headers,
+        )
+        return Booking(**response.json())
+
     @allure.step("Delete booking")
     def delete_booking(self, booking_id: int, token: str) -> None:
         headers = {"Cookie": f"token={token}"}
         self.delete(endpoint=f"{self.BOOKING_ENDPOINT}/{booking_id}", headers=headers)
+
+    @allure.step("Get booking IDs")
+    def get_booking_ids(self, params: dict | None = None) -> list[int]:
+        response = self.get(endpoint=self.BOOKING_ENDPOINT, params=params)
+        return [item["bookingid"] for item in response.json()]
