@@ -39,12 +39,14 @@ def auth_token(client: BookerClient) -> str:
 def test_booking_data() -> Booking:
     """Returns a valid Booking model with hardcoded test data."""
     return Booking(
-        firstname="Alex",
-        lastname="Tester",
-        totalprice=150,
-        depositpaid=True,
-        bookingdates=BookingDates(checkin=date(2024, 1, 1), checkout=date(2024, 1, 10)),
-        additionalneeds="WiFi",
+        first_name="Alex",
+        last_name="Tester",
+        total_price=150,
+        deposit_paid=True,
+        booking_dates=BookingDates(
+            checkin=date(2024, 1, 1), checkout=date(2024, 1, 10)
+        ),
+        additional_needs="WiFi",
     )
 
 
