@@ -1,0 +1,17 @@
+[
+  {
+    "case": "Invalid firstname (type mismatch)",
+    "payload_update": {"firstname": 123},
+    "expected_status": 500
+  },
+  {
+    "case": "Invalid totalprice (string instead of int)",
+    "payload_update": {"totalprice": "one hundred"},
+    "expected_status": 200
+  },
+  {
+    "case": "Empty firstname",
+    "payload_update": {"firstname": ""},
+    "expected_status": 200
+  }
+]
