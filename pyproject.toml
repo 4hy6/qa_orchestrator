@@ -5,6 +5,7 @@ description = "Enterprise-grade QA Automation Orchestrator"
 readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
+    "allure-pytest>=2.15.3",
     "loguru>=0.7.3",
     "pydantic>=2.12.5",
     "pydantic-settings>=2.12.0",
