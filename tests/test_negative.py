@@ -29,7 +29,7 @@ def load_scenarios() -> list[Any]:
     Returns a list of pytest.param objects with markers applied if needed.
     """
     path = Path(__file__).parent / "data" / "negative_scenarios.json"
-    scenarios = []
+    scenarios: list[Any] = []
 
     with open(path, encoding="utf-8") as f:
         data = json.load(f)
@@ -42,7 +42,7 @@ def load_scenarios() -> list[Any]:
                     )
                 )
             else:
-                scenarios.append(scenario)
+                scenarios.append(pytest.param(scenario))
 
     return scenarios
 
