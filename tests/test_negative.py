@@ -82,3 +82,6 @@ class TestBookingNegative:
 
         with allure.step("Check exception status code"):
             assert exc.value.status_code == 403
+
+
+# Trigger CI formatting
