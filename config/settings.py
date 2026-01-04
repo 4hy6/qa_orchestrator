@@ -24,6 +24,7 @@ class Settings(BaseSettings):
 
 
 try:
-    settings = Settings()
+    # Mypy cannot see that pydantic-settings injects values from .env,
+    settings = Settings()  # type: ignore[call-arg]
 except Exception as e:
     raise ConfigurationError(f"Failed to load configuration: {e}") from e

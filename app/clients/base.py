@@ -1,4 +1,4 @@
-from typing import Any
+from typing import Any, cast
 from urllib.parse import urljoin
 
 import requests
@@ -83,12 +83,12 @@ class BaseClient:
     def _get_error_payload(self, response: Response) -> dict[str, Any] | None:
         """Helper to safely extract JSON from error response."""
         try:
-            return response.json()
+            return cast(dict[str, Any], response.json())
         except Exception:
             return None
 
     def _prepare_payload(
-        self, payload: BaseModel | dict | None
+        self, payload: BaseModel | dict[str, Any] | None
     ) -> dict[str, Any] | None:
         """
         Helper: Converts Pydantic models to dicts ready for JSON serialization.
@@ -106,19 +106,28 @@ class BaseClient:
         return self._request(HttpMethod.GET, endpoint, **kwargs)
 
     def post(
-        self, endpoint: str, payload: BaseModel | dict | None = None, **kwargs: Any
+        self,
+        endpoint: str,
+        payload: BaseModel | dict[str, Any] | None = None,
+        **kwargs: Any,
     ) -> Response:
         json_data = self._prepare_payload(payload)
         return self._request(HttpMethod.POST, endpoint, json=json_data, **kwargs)
 
     def put(
-        self, endpoint: str, payload: BaseModel | dict | None = None, **kwargs: Any
+        self,
+        endpoint: str,
+        payload: BaseModel | dict[str, Any] | None = None,
+        **kwargs: Any,
     ) -> Response:
         json_data = self._prepare_payload(payload)
         return self._request(HttpMethod.PUT, endpoint, json=json_data, **kwargs)
 
     def patch(
-        self, endpoint: str, payload: BaseModel | dict | None = None, **kwargs: Any
+        self,
+        endpoint: str,
+        payload: BaseModel | dict[str, Any] | None = None,
+        **kwargs: Any,
     ) -> Response:
         json_data = self._prepare_payload(payload)
         return self._request(HttpMethod.PATCH, endpoint, json=json_data, **kwargs)

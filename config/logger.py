@@ -4,6 +4,8 @@ from loguru import logger
 
 from config.settings import settings
 
+__all__ = ["logger", "configure_logging"]
+
 
 def configure_logging() -> None:
     logger.remove()

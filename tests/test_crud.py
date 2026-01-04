@@ -5,7 +5,7 @@ from app.exceptions import APIClientError
 from app.schemas import Booking, BookingResponse
 
 
-def test_create_booking(client: BookerClient, test_booking_data: Booking):
+def test_create_booking(client: BookerClient, test_booking_data: Booking) -> None:
     """
     Test positive creation of a booking.
     Verifies that the returned data matches the sent data.
@@ -17,7 +17,7 @@ def test_create_booking(client: BookerClient, test_booking_data: Booking):
     assert response.booking.total_price == test_booking_data.total_price
 
 
-def test_get_booking(client: BookerClient, created_booking: BookingResponse):
+def test_get_booking(client: BookerClient, created_booking: BookingResponse) -> None:
     """
     Test retrieving an existing booking.
     Uses 'created_booking' fixture to ensure a booking exists.
@@ -33,7 +33,7 @@ def test_update_booking(
     auth_token: str,
     created_booking: BookingResponse,
     test_booking_data: Booking,
-):
+) -> None:
     """
     Test updating a booking.
     Requires 'auth_token' for permission.
@@ -53,7 +53,7 @@ def test_update_booking(
 
 def test_delete_booking(
     client: BookerClient, auth_token: str, created_booking: BookingResponse
-):
+) -> None:
     """
     Test deleting a booking.
     Verifies that subsequent access returns 404.

@@ -1,12 +1,15 @@
+from collections.abc import Generator
+from datetime import date
+
 import pytest
 
 from app.clients import BookerClient
-from app.schemas import Booking, BookingDates
+from app.schemas import Booking, BookingDates, BookingResponse
 from config.settings import settings
 
 
 @pytest.fixture(scope="session")
-def client():
+def client() -> Generator[BookerClient, None, None]:
     """
     Creates a single instance of BookerClient for the entire test session.
     Manages the HTTP session lifecycle.
@@ -19,7 +22,7 @@ def client():
 
 
 @pytest.fixture(scope="session")
-def auth_token(client):
+def auth_token(client: BookerClient) -> str:
     """
     Performs authentication once per session and returns the token.
     Depends on the 'client' fixture.
@@ -32,20 +35,22 @@ def auth_token(client):
 
 
 @pytest.fixture
-def test_booking_data():
+def test_booking_data() -> Booking:
     """Returns a valid Booking model with hardcoded test data."""
     return Booking(
         firstname="Alex",
         lastname="Tester",
         totalprice=150,
         depositpaid=True,
-        bookingdates=BookingDates(checkin="2024-01-01", checkout="2024-01-10"),
+        bookingdates=BookingDates(checkin=date(2024, 1, 1), checkout=date(2024, 1, 10)),
         additionalneeds="WiFi",
     )
 
 
 @pytest.fixture
-def created_booking(client, test_booking_data):
+def created_booking(
+    client: BookerClient, test_booking_data: Booking
+) -> BookingResponse:
     """
     Creates a booking in the system and returns the response object.
     Useful for tests that need an existing booking (Get/Update/Delete).

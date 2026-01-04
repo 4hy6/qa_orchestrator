@@ -1,3 +1,4 @@
+import sys
 from datetime import date, timedelta
 
 from app.clients import BookerClient
@@ -6,7 +7,7 @@ from config.logger import configure_logging, logger
 from config.settings import settings
 
 
-def main():
+def main() -> None:
     configure_logging()
 
     logger.info("Starting Orchestrator Application...")
@@ -23,7 +24,7 @@ def main():
         logger.critical(
             f"Internal schema validation failed. System integrity compromised: {e}"
         )
-        exit(1)
+        sys.exit(1)
 
     client = BookerClient(base_url=str(settings.base_url))
 
@@ -36,18 +37,18 @@ def main():
         logger.critical(
             f"Authentication failed. Check credentials in .env. Details: {e}"
         )
-        exit(1)
+        sys.exit(1)
 
     today = date.today()
     booking_payload = Booking(
-        first_name="Ivan",
-        last_name="Automator",
-        total_price=120,
-        deposit_paid=True,
-        booking_dates=BookingDates(
+        firstname="Ivan",
+        lastname="Automator",
+        totalprice=120,
+        depositpaid=True,
+        bookingdates=BookingDates(
             checkin=today + timedelta(days=1), checkout=today + timedelta(days=5)
         ),
-        additional_needs="Quiet Room",
+        additionalneeds="Quiet Room",
     )
 
     try:
@@ -66,7 +67,7 @@ def main():
 
     except Exception as e:
         logger.error(f"Business transaction failed. API Error: {e}")
-        exit(1)
+        sys.exit(1)
 
     logger.info("Sanity check cycle completed successfully.")
 
