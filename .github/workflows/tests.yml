@@ -36,4 +36,9 @@ jobs:
         run: uv run mypy .
 
       - name: Run Tests (Pytest)
+
+        env:
+          BASE_URL: "https://restful-booker.herokuapp.com"
+          BOOKER_USERNAME: "admin"
+          BOOKER_PASSWORD: "password123"
         run: uv run pytest
