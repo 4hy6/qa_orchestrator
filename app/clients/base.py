@@ -1,6 +1,7 @@
 from typing import Any, cast
 from urllib.parse import urljoin
 
+import allure
 import requests
 from loguru import logger
 from pydantic import BaseModel
@@ -23,7 +24,6 @@ class BaseClient:
         self.base_url = base_url
         self.session: Session = requests.Session()
 
-        # --- RETRY STRATEGY SETUP ---
         retries = Retry(
             total=3,
             backoff_factor=0.3,
@@ -50,35 +50,35 @@ class BaseClient:
             f"Body: {kwargs.get('json')}"
         )
 
-        try:
-            # Added timeout: 10s connect, 30s read
-            response = self.session.request(
-                method=method, url=url, timeout=(10, 30), **kwargs
-            )
-
-            logger.debug(
-                f"Response: {response.status_code} | "
-                f"Time: {response.elapsed.total_seconds()}s"
-            )
-
+        with allure.step(f"{method} {url}"):
             try:
-                response.raise_for_status()
-            except requests.HTTPError as e:
-                logger.error(
-                    f"HTTP Error: {e.response.status_code} {e.response.reason} "
-                    f"for {method} {url}"
+                response = self.session.request(
+                    method=method, url=url, timeout=(10, 30), **kwargs
                 )
-                raise APIClientError(
-                    message=f"API Error {e.response.status_code}: {e}",
-                    status_code=e.response.status_code,
-                    payload=self._get_error_payload(e.response),
-                ) from e
 
-            return response
+                logger.debug(
+                    f"Response: {response.status_code} | "
+                    f"Time: {response.elapsed.total_seconds()}s"
+                )
 
-        except requests.RequestException as e:
-            logger.error(f"Network Request failed: {method} {url} | Error: {e}")
-            raise APIClientError(f"Network error during {method} {url}") from e
+                try:
+                    response.raise_for_status()
+                except requests.HTTPError as e:
+                    logger.error(
+                        f"HTTP Error: {e.response.status_code} {e.response.reason} "
+                        f"for {method} {url}"
+                    )
+                    raise APIClientError(
+                        message=f"API Error {e.response.status_code}: {e}",
+                        status_code=e.response.status_code,
+                        payload=self._get_error_payload(e.response),
+                    ) from e
+
+                return response
+
+            except requests.RequestException as e:
+                logger.error(f"Network Request failed: {method} {url} | Error: {e}")
+                raise APIClientError(f"Network error during {method} {url}") from e
 
     def _get_error_payload(self, response: Response) -> dict[str, Any] | None:
         """Helper to safely extract JSON from error response."""
@@ -91,13 +91,16 @@ class BaseClient:
         self, payload: BaseModel | dict[str, Any] | None
     ) -> dict[str, Any] | None:
         """
-        Helper: Converts Pydantic models to dicts ready for JSON serialization.
-        Enforces by_alias=True and mode='json' globally.
+        Helper: Prepares payload for transmission.
+        Delegates serialization logic to the model itself (SSOT).
         """
         if payload is None:
             return None
 
         if isinstance(payload, BaseModel):
+            if hasattr(payload, "to_payload"):
+                return payload.to_payload()
+
             return payload.model_dump(by_alias=True, mode="json")
 
         return payload

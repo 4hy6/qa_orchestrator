@@ -1,15 +1,11 @@
 from enum import StrEnum
+from typing import Any
 
 from pydantic import BaseModel, ConfigDict
 from pydantic.alias_generators import to_camel
 
 
 class HttpMethod(StrEnum):
-    """
-    HTTP methods used in API interactions.
-    Using StrEnum (Python 3.11+) allows these to be used directly as strings.
-    """
-
     GET = "GET"
     POST = "POST"
     PUT = "PUT"
@@ -20,10 +16,6 @@ class HttpMethod(StrEnum):
 
 
 class ContentType(StrEnum):
-    """
-    Common HTTP Content-Type header values.
-    """
-
     JSON = "application/json"
     XML = "application/xml"
     FORM_URLENCODED = "application/x-www-form-urlencoded"
@@ -33,8 +25,8 @@ class ContentType(StrEnum):
 
 class BaseSchema(BaseModel):
     """
-    Base schema for EXTERNAL APIs (e.g., Restful-Booker).
-    Automatically handles snake_case (Python) <-> camelCase (JSON) conversion.
+    Base schema for EXTERNAL APIs.
+    Single Source of Truth for serialization rules.
     """
 
     model_config = ConfigDict(
@@ -43,3 +35,12 @@ class BaseSchema(BaseModel):
         from_attributes=True,
         extra="ignore",
     )
+
+    def to_payload(self) -> dict[str, Any]:
+        """
+        Converts model to API-compatible dictionary.
+        Rules:
+        1. Aliases are enforced (snake_case -> camelCase).
+        2. Types are serialized (date -> str).
+        """
+        return self.model_dump(by_alias=True, mode="json")
