@@ -1,3 +1,4 @@
+import json
 from typing import Any, cast
 from urllib.parse import urljoin
 
@@ -36,24 +37,33 @@ class BaseClient:
 
         self.session.mount("http://", adapter)
         self.session.mount("https://", adapter)
-        # ----------------------------
 
     def _request(self, method: str, endpoint: str, **kwargs: Any) -> Response:
         """
-        Internal method to execute HTTP requests with logging and error handling.
+        Internal method to execute HTTP requests with logging, error handling,
+        and Allure reporting.
         """
         url = urljoin(self.base_url, endpoint)
 
-        logger.debug(
-            f"Request: {method} {url} | "
-            f"Params: {kwargs.get('params')} | "
-            f"Body: {kwargs.get('json')}"
-        )
+        logger.debug(f"Request: {method} {url} | Body: {kwargs.get('json')}")
 
         with allure.step(f"{method} {url}"):
+            if kwargs.get("json"):
+                allure.attach(
+                    json.dumps(kwargs.get("json"), indent=2),
+                    name="Request Body",
+                    attachment_type=allure.attachment_type.JSON,
+                )
+
             try:
                 response = self.session.request(
                     method=method, url=url, timeout=(10, 30), **kwargs
+                )
+
+                allure.attach(
+                    f"Status Code: {response.status_code}\n{response.text}",
+                    name="Response Body",
+                    attachment_type=allure.attachment_type.TEXT,
                 )
 
                 logger.debug(
@@ -64,10 +74,7 @@ class BaseClient:
                 try:
                     response.raise_for_status()
                 except requests.HTTPError as e:
-                    logger.error(
-                        f"HTTP Error: {e.response.status_code} {e.response.reason} "
-                        f"for {method} {url}"
-                    )
+                    logger.error(f"HTTP Error: {e.response.status_code}")
                     raise APIClientError(
                         message=f"API Error {e.response.status_code}: {e}",
                         status_code=e.response.status_code,
@@ -77,7 +84,7 @@ class BaseClient:
                 return response
 
             except requests.RequestException as e:
-                logger.error(f"Network Request failed: {method} {url} | Error: {e}")
+                logger.error(f"Network Error: {e}")
                 raise APIClientError(f"Network error during {method} {url}") from e
 
     def _get_error_payload(self, response: Response) -> dict[str, Any] | None:
@@ -88,21 +95,16 @@ class BaseClient:
             return None
 
     def _prepare_payload(
-        self, payload: BaseModel | dict[str, Any] | None
+        self,
+        payload: BaseModel | dict[str, Any] | None,
     ) -> dict[str, Any] | None:
-        """
-        Helper: Prepares payload for transmission.
-        Delegates serialization logic to the model itself (SSOT).
-        """
+        """Helper to prepare payload (model -> dict)."""
         if payload is None:
             return None
-
         if isinstance(payload, BaseModel):
             if hasattr(payload, "to_payload"):
-                return payload.to_payload()
-
+                return payload.to_payload()  # type: ignore
             return payload.model_dump(by_alias=True, mode="json")
-
         return payload
 
     def get(self, endpoint: str, **kwargs: Any) -> Response:
