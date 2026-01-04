@@ -13,6 +13,7 @@ dependencies = [
 
 [dependency-groups]
 dev = [
+    "allure-pytest>=2.15.3",
     "mypy>=1.19.1",
     "pre-commit>=4.5.1",
     "pytest>=9.0.2",
@@ -54,7 +55,7 @@ ignore_missing_imports = true
 
 
 [tool.pytest.ini_options]
-addopts = "--cov=app --cov=config --cov-report=term-missing --cov-report=html"
+addopts = "-v -s --tb=short --cov=app --cov=config --cov-report=term-missing --cov-report=html"
 testpaths = ["tests"]
 
 [tool.coverage.run]

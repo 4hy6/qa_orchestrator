@@ -88,6 +88,10 @@ test-f:
 	@echo "[test-f] Running Tests (Stop on First Failure)..."
 	$(CMD) pytest -x
 
+test-allure:
+	@echo "[test-allure] Running Tests with Allure Results..."
+	$(CMD) pytest --alluredir=allure-results
+
 check: format lint type-check test
 	@echo "[check] All checks passed!"
 
