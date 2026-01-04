@@ -1,6 +1,6 @@
 import pytest
 
-from app.clients.booker import BookerClient
+from app.clients import BookerClient
 from app.schemas import Booking, BookingDates
 from config.settings import settings
 

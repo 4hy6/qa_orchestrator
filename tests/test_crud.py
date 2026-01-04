@@ -1,6 +1,6 @@
 import pytest
 
-from app.clients.booker import BookerClient
+from app.clients import BookerClient
 from app.exceptions import APIClientError
 from app.schemas import Booking, BookingResponse
 

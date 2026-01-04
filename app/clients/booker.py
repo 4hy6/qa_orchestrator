@@ -1,5 +1,5 @@
 # app/clients/booker.py
-from app.clients import BaseClient
+from app.clients.base import BaseClient
 from app.schemas import AuthRequest, AuthResponse, Booking, BookingResponse
 
 
