@@ -1,5 +1,7 @@
 # QA Orchestrator
 
+![CI](https://github.com/4hy6/qa-orchestrator/actions/workflows/tests.yml/badge.svg)
+
 Automated testing framework designed for the Restful-Booker API.
 This project implements a scalable architecture using Python 3.12, Pytest, and Pydantic with strict type enforcement.
 

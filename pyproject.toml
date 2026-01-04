@@ -54,6 +54,15 @@ python_version = "3.12"
 strict = true
 ignore_missing_imports = true
 
+[[tool.mypy.overrides]]
+module = "allure"
+ignore_missing_imports = true
+
+[[tool.mypy.overrides]]
+module = "tests.*"
+disallow_untyped_calls = false
+disallow_untyped_decorators = false
+
 
 [tool.pytest.ini_options]
 addopts = "-v -s --tb=short --cov=app --cov=config --cov-report=term-missing --cov-report=html"

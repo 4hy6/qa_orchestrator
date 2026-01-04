@@ -1,3 +1,5 @@
+from typing import Any
+
 import allure
 
 from app.clients.base import BaseClient
@@ -45,7 +47,7 @@ class BookerClient(BaseClient):
 
     @allure.step("Partial update booking (PATCH)")
     def partial_update_booking(
-        self, booking_id: int, payload: dict, token: str
+        self, booking_id: int, payload: dict[str, Any], token: str
     ) -> Booking:
         headers = {"Cookie": f"token={token}"}
         response = self.patch(
@@ -61,6 +63,6 @@ class BookerClient(BaseClient):
         self.delete(endpoint=f"{self.BOOKING_ENDPOINT}/{booking_id}", headers=headers)
 
     @allure.step("Get booking IDs")
-    def get_booking_ids(self, params: dict | None = None) -> list[int]:
+    def get_booking_ids(self, params: dict[str, Any] | None = None) -> list[int]:
         response = self.get(endpoint=self.BOOKING_ENDPOINT, params=params)
         return [item["bookingid"] for item in response.json()]

@@ -21,6 +21,7 @@ class APIClientError(QAOrchestratorError):
         status_code: int | None = None,
         payload: dict[str, Any] | None = None,
     ) -> None:
+        self.message = message
         self.status_code = status_code
         self.payload = payload
         super().__init__(message)

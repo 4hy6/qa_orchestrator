@@ -38,7 +38,8 @@ def auth_token(client: BookerClient) -> str:
 @pytest.fixture
 def test_booking_data() -> Booking:
     """Returns a valid Booking model with hardcoded test data."""
-    return Booking(
+
+    return Booking(  # type: ignore[call-arg]
         first_name="Alex",
         last_name="Tester",
         total_price=150,
