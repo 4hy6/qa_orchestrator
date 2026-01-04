@@ -29,6 +29,9 @@ help:
 	@echo "  lint           Run static code analysis (Ruff)"
 	@echo "  type-check     Run static type checking (Mypy)"
 	@echo "  test           Run tests with Coverage (configured in pyproject.toml)"
+	@echo "  test-v         Run tests in verbose mode (show test names)"
+	@echo "  test-s         Run tests showing stdout/logs (good for debugging)"
+	@echo "  test-f         Run tests and stop on first failure"
 	@echo "  check          Run FULL pipeline: format -> lint -> type -> test"
 	@echo ""
 	@echo "Docker Targets:"
@@ -72,6 +75,18 @@ test:
 	@echo "[test] Running Tests (Pytest + Coverage)..."
 	# Arguments are now loaded from pyproject.toml
 	$(CMD) pytest
+
+test-v:
+	@echo "[test-v] Running Tests (Verbose)..."
+	$(CMD) pytest -v
+
+test-s:
+	@echo "[test-s] Running Tests (Show Output)..."
+	$(CMD) pytest -s
+
+test-f:
+	@echo "[test-f] Running Tests (Stop on First Failure)..."
+	$(CMD) pytest -x
 
 check: format lint type-check test
 	@echo "[check] All checks passed!"
