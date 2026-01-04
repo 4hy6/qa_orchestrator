@@ -4,6 +4,7 @@ from datetime import date
 import pytest
 
 from app.clients import BookerClient
+from app.exceptions import APIClientError
 from app.schemas import Booking, BookingDates, BookingResponse
 from config.settings import settings
 
@@ -49,11 +50,17 @@ def test_booking_data() -> Booking:
 
 @pytest.fixture
 def created_booking(
-    client: BookerClient, test_booking_data: Booking
-) -> BookingResponse:
+    client: BookerClient, auth_token: str, test_booking_data: Booking
+) -> Generator[BookingResponse, None, None]:
     """
-    Creates a booking in the system and returns the response object.
-    Useful for tests that need an existing booking (Get/Update/Delete).
+    Creates a booking, yields it for the test, and deletes it afterwards.
+    Ensures no 'zombie data' is left in the system (Teardown pattern).
     """
     response = client.create_booking(test_booking_data)
-    return response
+
+    yield response
+
+    try:
+        client.delete_booking(response.bookingid, auth_token)
+    except APIClientError:
+        pass
