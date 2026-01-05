@@ -16,9 +16,7 @@ from app.schemas.common import HttpMethod
 
 class BaseClient:
     """
-    Base class for all API clients.
-    Wraps requests.Session to handle connection pooling, logging, retries,
-    and error handling.
+    Main communication layer providing connection pooling, logging and retry logic.
     """
 
     def __init__(self, base_url: str) -> None:
@@ -34,15 +32,10 @@ class BaseClient:
         )
 
         adapter = HTTPAdapter(max_retries=retries)
-
         self.session.mount("http://", adapter)
         self.session.mount("https://", adapter)
 
     def _request(self, method: str, endpoint: str, **kwargs: Any) -> Response:
-        """
-        Internal method to execute HTTP requests with logging, error handling,
-        and Allure reporting.
-        """
         url = urljoin(self.base_url, endpoint)
 
         logger.debug(f"Request: {method} {url} | Body: {kwargs.get('json')}")
@@ -88,7 +81,6 @@ class BaseClient:
                 raise APIClientError(f"Network error during {method} {url}") from e
 
     def _get_error_payload(self, response: Response) -> dict[str, Any] | None:
-        """Helper to safely extract JSON from error response."""
         try:
             return cast(dict[str, Any], response.json())
         except Exception:
@@ -98,7 +90,6 @@ class BaseClient:
         self,
         payload: BaseModel | dict[str, Any] | None,
     ) -> dict[str, Any] | None:
-        """Helper to prepare payload (model -> dict)."""
         if payload is None:
             return None
         if isinstance(payload, BaseModel):

@@ -89,5 +89,8 @@ def created_booking(
 
     try:
         client.delete_booking(response.bookingid, auth_token)
-    except APIClientError:
-        pass
+    except APIClientError as e:
+        # Log cleanup failure without failing the test suite
+        from loguru import logger
+
+        logger.warning(f"Failed to cleanup booking {response.bookingid}: {e}")
