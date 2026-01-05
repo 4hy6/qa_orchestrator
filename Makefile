@@ -92,6 +92,10 @@ test-allure:
 	@echo "[test-allure] Running Tests with Allure Results..."
 	$(CMD) pytest --alluredir=allure-results
 
+report:
+	@echo "[report] Generating and opening Allure Report..."
+	allure serve allure-results
+
 check: format lint type-check test
 	@echo "[check] All checks passed!"
 

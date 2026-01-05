@@ -20,7 +20,7 @@ class NegativeScenario(BaseModel):
     case: str
     payload_update: dict[str, Any]
     expected_status: int
-    xfail: bool = False  # New field for known bugs
+    xfail: bool = False
 
 
 def load_scenarios() -> list[Any]:
