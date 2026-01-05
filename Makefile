@@ -121,3 +121,18 @@ docker-dev:
 		-v $(PWD):/app \
 		-v /app/.venv \
 		$(IMAGE_NAME):$(TAG) python -m app.main
+
+# ==============================================================================
+# INFRASTRUCTURE (Docker Compose)
+# ==============================================================================
+up:
+	@echo "[up] Starting Infrastructure (DB + PgAdmin)..."
+	docker compose up -d
+
+down:
+	@echo "[down] Stopping Infrastructure..."
+	docker compose down
+
+logs:
+	@echo "[logs] Showing Infrastructure Logs..."
+	docker compose logs -f
