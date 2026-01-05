@@ -1,6 +1,6 @@
 from typing import Literal
 
-from pydantic import AnyHttpUrl, Field
+from pydantic import AnyHttpUrl, Field, SecretStr, computed_field
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 from app.exceptions import ConfigurationError
@@ -15,6 +15,25 @@ class Settings(BaseSettings):
 
     booker_username: str = Field(description="Username for Booker API")
     booker_password: str = Field(description="Password for Booker API")
+
+    # Database Settings
+    postgres_user: str = Field(default="postgres")
+    postgres_password: SecretStr = Field(default=SecretStr("postgres"))
+    postgres_db: str = Field(default="qa_orchestrator_db")
+    postgres_host: str = Field(default="localhost")
+    postgres_port: int = Field(default=5432)
+
+    @computed_field  # type: ignore[prop-decorator]
+    @property
+    def database_url(self) -> str:
+        """
+        Constructs the SQLAlchemy database URL.
+        Format: postgresql://user:password@host:port/dbname
+        """
+        return (
+            f"postgresql://{self.postgres_user}:{self.postgres_password.get_secret_value()}"
+            f"@{self.postgres_host}:{self.postgres_port}/{self.postgres_db}"
+        )
 
     model_config = SettingsConfigDict(
         env_file=".env",
