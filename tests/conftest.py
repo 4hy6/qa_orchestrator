@@ -2,11 +2,35 @@ from collections.abc import Generator
 from datetime import date
 
 import pytest
+from sqlalchemy.orm import Session
 
 from app.clients import BookerClient
+from app.db import Base, SessionLocal, engine
 from app.exceptions import APIClientError
 from app.schemas import Booking, BookingDates, BookingResponse
 from config.settings import settings
+
+
+@pytest.fixture(scope="session", autouse=True)
+def init_db() -> None:
+    """
+    Initializes the database schema before the test session starts.
+    Creates tables if they do not exist.
+    """
+    Base.metadata.create_all(bind=engine)
+
+
+@pytest.fixture
+def db_session() -> Generator[Session, None, None]:
+    """
+    Provides a transactional scope around a series of operations.
+    Yields a SQLAlchemy Session.
+    """
+    session = SessionLocal()
+    try:
+        yield session
+    finally:
+        session.close()
 
 
 @pytest.fixture(scope="session")
