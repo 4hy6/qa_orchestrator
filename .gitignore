@@ -60,3 +60,6 @@ cover/
 # Allure reports
 allure-results/
 allure-report/
+
+# Load Testing
+locust_report.html

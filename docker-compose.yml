@@ -34,14 +34,29 @@ services:
       PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_DEFAULT_PASSWORD}
     ports:
       - "5050:80"
+    volumes:
+      - pgadmin_data:/var/lib/pgadmin
     networks:
       - qa_infra
     depends_on:
       db:
         condition: service_healthy
 
+  # ----------------------------------------------------------------------------
+  # APP UNDER TEST (Local Instance)
+  # ----------------------------------------------------------------------------
+  app:
+    image: ankurpshah/restful-booker:latest
+    container_name: qa_app_target
+    restart: always
+    ports:
+      - "3001:3001"
+    networks:
+      - qa_infra
+
 volumes:
   postgres_data:
+  pgadmin_data:
 
 networks:
   qa_infra:

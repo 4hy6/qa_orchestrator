@@ -13,6 +13,7 @@ TAG            := latest
 .PHONY: help install clean
 .PHONY: lint format type-check check test
 .PHONY: docker-build docker-run docker-clean docker-dev
+.PHONY: compose-up compose-down compose-logs load-test load-ui
 
 # ==============================================================================
 # HELP & DOCS
@@ -34,11 +35,19 @@ help:
 	@echo "  test-f         Run tests and stop on first failure"
 	@echo "  check          Run FULL pipeline: format -> lint -> type -> test"
 	@echo ""
-	@echo "Docker Targets:"
+	@echo "Infrastructure & Docker:"
+	@echo "  compose-up     Start full environment (DB + App)"
+	@echo "  compose-down   Stop and remove containers"
+	@echo "  compose-logs   Show real-time logs"
+	@echo "  compose-ps     Show containers status"
 	@echo "  docker-build   Build optimized multi-stage image"
-	@echo "  docker-run     Run container with auto-cleanup (--rm)"
-	@echo "  docker-clean   Remove dangling images and system prune"
-	@echo "  docker-dev     Run container with bind mounts (Hot Reload)"
+	@echo "  docker-run     Run container with auto-cleanup"
+	@echo "  docker-clean   System prune and cleanup"
+	@echo "  docker-dev     Run with Hot Reload (bind mounts)"
+	@echo ""
+	@echo "Performance Testing:"
+	@echo "  load-test      Run headless Locust test (10s)"
+	@echo "  load-ui        Start Locust Web UI"
 
 # ==============================================================================
 # CORE
@@ -73,24 +82,28 @@ type-check:
 
 test:
 	@echo "[test] Running Tests (Pytest + Coverage)..."
-	# Arguments are now loaded from pyproject.toml
-	$(CMD) pytest
+# Local run: host override
+	POSTGRES_HOST=localhost $(CMD) pytest
 
 test-v:
 	@echo "[test-v] Running Tests (Verbose)..."
-	$(CMD) pytest -v
+# Local run: host override
+	POSTGRES_HOST=localhost $(CMD) pytest -v
 
 test-s:
 	@echo "[test-s] Running Tests (Show Output)..."
-	$(CMD) pytest -s
+# Local run: host override
+	POSTGRES_HOST=localhost $(CMD) pytest -s
 
 test-f:
 	@echo "[test-f] Running Tests (Stop on First Failure)..."
-	$(CMD) pytest -x
+# Local run: host override
+	POSTGRES_HOST=localhost $(CMD) pytest -x
 
 test-allure:
 	@echo "[test-allure] Running Tests with Allure Results..."
-	$(CMD) pytest --alluredir=allure-results
+# Local run: host override
+	POSTGRES_HOST=localhost $(CMD) pytest --alluredir=allure-results
 
 report:
 	@echo "[report] Generating and opening Allure Report..."
@@ -100,7 +113,7 @@ check: format lint type-check test
 	@echo "[check] All checks passed!"
 
 # ==============================================================================
-# DOCKER
+# DOCKER (App Build)
 # ==============================================================================
 docker-build:
 	@echo "[docker-build] Building Docker image: $(IMAGE_NAME):$(TAG)"
@@ -125,14 +138,36 @@ docker-dev:
 # ==============================================================================
 # INFRASTRUCTURE (Docker Compose)
 # ==============================================================================
-up:
-	@echo "[up] Starting Infrastructure (DB + PgAdmin)..."
+compose-up:
+	@echo "[compose-up] Starting Infrastructure..."
 	docker compose up -d
 
-down:
-	@echo "[down] Stopping Infrastructure..."
+compose-down:
+	@echo "[compose-down] Stopping Infrastructure..."
 	docker compose down
 
-logs:
-	@echo "[logs] Showing Infrastructure Logs..."
+compose-logs:
+	@echo "[compose-logs] Showing Infrastructure Logs..."
 	docker compose logs -f
+
+compose-ps:
+	@echo "[compose-ps] Infrastructure status..."
+	docker compose ps
+
+# ==============================================================================
+# PERFORMANCE TESTING (Locust)
+# ==============================================================================
+load-test:
+	@echo "[load-test] Running headless performance test (10s)..."
+	$(CMD) locust \
+		-f tests/load/locustfile.py \
+		--host http://localhost:3001 \
+		--users 10 \
+		--spawn-rate 2 \
+		--run-time 10s \
+		--headless \
+		--html locust_report.html
+
+load-ui:
+	@echo "[load-ui] Starting Locust Web UI at http://localhost:8089..."
+	$(CMD) locust -f tests/load/locustfile.py --host http://localhost:3001
