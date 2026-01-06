@@ -1,5 +1,6 @@
 from collections.abc import Generator
 from datetime import date
+from typing import Any
 
 import pytest
 from loguru import logger
@@ -76,7 +77,9 @@ def created_booking(
 
 
 @pytest.hookimpl(tryfirst=True, hookwrapper=True)
-def pytest_runtest_makereport(item: pytest.Item, call: pytest.CallInfo) -> Generator:
+def pytest_runtest_makereport(
+    item: pytest.Item, call: pytest.CallInfo[None]
+) -> Generator[None, Any, None]:
     outcome = yield
     report = outcome.get_result()
 
