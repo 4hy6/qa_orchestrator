@@ -27,5 +27,6 @@ WORKDIR /app
 COPY --from=builder /app/.venv /app/.venv
 COPY app/ ./app/
 COPY config/ ./config/
+COPY tests/ ./tests/
 
 CMD ["python", "-m", "app.main"]
