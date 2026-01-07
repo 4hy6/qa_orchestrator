@@ -9,6 +9,7 @@ class TestRun(Base):
     """
 
     __tablename__ = "test_runs"
+    __test__ = False
 
     id = Column(Integer, primary_key=True, index=True)
     test_name = Column(String, nullable=False, index=True)

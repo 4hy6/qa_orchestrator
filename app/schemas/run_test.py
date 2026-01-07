@@ -17,6 +17,8 @@ class TestRunRequest(BaseModel):
     acts as a DTO (Data Transfer Object).
     """
 
+    __test__ = False
+
     test_suite: str = Field(
         ...,
         min_length=3,
