@@ -171,3 +171,25 @@ load-test:
 load-ui:
 	@echo "[load-ui] Starting Locust Web UI at http://localhost:8089..."
 	$(CMD) locust -f tests/load/locustfile.py --host http://localhost:3001
+
+# ==============================================================================
+# DATABASE MIGRATIONS (Alembic)
+# ==============================================================================
+.PHONY: migrate-create migrate-up migrate-down migrate-history
+
+# Usage: make migrate-create m="Initial migration"
+migrate-create:
+	@echo "[migrate-create] Generating new migration script..."
+	POSTGRES_HOST=localhost $(CMD) alembic revision --autogenerate -m "$(m)"
+
+migrate-up:
+	@echo "[migrate-up] Applying all pending migrations..."
+	POSTGRES_HOST=localhost $(CMD) alembic upgrade head
+
+migrate-down:
+	@echo "[migrate-down] Rolling back last migration..."
+	POSTGRES_HOST=localhost $(CMD) alembic downgrade -1
+
+migrate-history:
+	@echo "[migrate-history] Showing migrations history..."
+	$(CMD) alembic history --verbose
