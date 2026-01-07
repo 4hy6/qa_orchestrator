@@ -7,16 +7,11 @@ from loguru import logger
 from sqlalchemy.orm import Session
 
 from app.clients import BookerClient
-from app.db import Base, SessionLocal, engine
+from app.db import SessionLocal
 from app.db.models import TestRun
 from app.exceptions import APIClientError
 from app.schemas import Booking, BookingDates, BookingResponse
 from config.settings import settings
-
-
-@pytest.fixture(scope="session", autouse=True)
-def init_db() -> None:
-    Base.metadata.create_all(bind=engine)
 
 
 @pytest.fixture

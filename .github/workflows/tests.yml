@@ -26,6 +26,16 @@ jobs:
           --health-timeout 5s
           --health-retries 5
 
+    env:
+      POSTGRES_HOST: "localhost"
+      POSTGRES_USER: "postgres"
+      POSTGRES_PASSWORD: "postgres"
+      POSTGRES_DB: "qa_orchestrator_db"
+      POSTGRES_PORT: 5432
+      BASE_URL: "https://restful-booker.herokuapp.com"
+      BOOKER_USERNAME: "admin"
+      BOOKER_PASSWORD: "password123"
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -50,14 +60,8 @@ jobs:
       - name: Type Check (Mypy)
         run: uv run mypy .
 
+      - name: Apply Database Migrations
+        run: uv run alembic upgrade head
+
       - name: Run Tests (Pytest)
-        env:
-          BASE_URL: "https://restful-booker.herokuapp.com"
-          BOOKER_USERNAME: "admin"
-          BOOKER_PASSWORD: "password123"
-          POSTGRES_HOST: "localhost"
-          POSTGRES_USER: "postgres"
-          POSTGRES_PASSWORD: "postgres"
-          POSTGRES_DB: "qa_orchestrator_db"
-          POSTGRES_PORT: 5432
         run: uv run pytest
