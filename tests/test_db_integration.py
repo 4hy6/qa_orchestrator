@@ -1,3 +1,4 @@
+from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from app.db.models import TestRun
@@ -13,9 +14,9 @@ def test_db_connection_and_write(db_session: Session) -> None:
     db_session.commit()
 
     # Verify read operation
-    saved_run = db_session.query(TestRun).filter_by(test_name=test_name).first()
+    stmt = select(TestRun).where(TestRun.test_name == test_name)
+    saved_run = db_session.execute(stmt).scalar_one()
 
-    assert saved_run is not None
     assert saved_run.status == status
     assert saved_run.id is not None
 
