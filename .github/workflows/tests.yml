@@ -25,10 +25,6 @@ jobs:
           --health-interval 10s
           --health-timeout 5s
           --health-retries 5
-      app:
-        image: ankurpshah/restful-booker:latest
-        ports:
-          - 3001:3001
 
     env:
       POSTGRES_HOST: "localhost"
@@ -43,6 +39,8 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+        with:
+          submodules: true
 
       - name: Install uv
         uses: astral-sh/setup-uv@v5
@@ -63,6 +61,12 @@ jobs:
 
       - name: Type Check (Mypy)
         run: uv run mypy .
+
+      - name: Build and Start Booker API
+        run: |
+          docker build -t local-booker -f vendor/Dockerfile.booker vendor/restful-booker
+          docker run -d -p 3001:3001 --name booker local-booker
+          sleep 10
 
       - name: Apply Database Migrations
         run: uv run alembic upgrade head

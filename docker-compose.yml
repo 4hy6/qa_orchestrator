@@ -46,7 +46,9 @@ services:
   # APP UNDER TEST (Local Instance)
   # ----------------------------------------------------------------------------
   app:
-    image: ankurpshah/restful-booker:latest
+    build:
+      context: ./vendor/restful-booker
+      dockerfile: ../Dockerfile.booker
     container_name: qa_app_target
     restart: always
     ports:

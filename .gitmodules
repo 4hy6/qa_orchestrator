@@ -1,0 +1,3 @@
+[submodule "vendor/restful-booker"]
+	path = vendor/restful-booker
+	url = https://github.com/mwinteringham/restful-booker.git
