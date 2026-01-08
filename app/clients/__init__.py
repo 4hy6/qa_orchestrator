@@ -1,7 +1,7 @@
-from app.clients.base import BaseClient
+from app.clients.base import BaseAPIClient
 from app.clients.booker import BookerClient
 
 __all__ = [
-    "BaseClient",
+    "BaseAPIClient",
     "BookerClient",
 ]

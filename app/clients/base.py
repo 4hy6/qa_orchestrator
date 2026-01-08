@@ -14,13 +14,14 @@ from app.exceptions import APIClientError
 from app.schemas.common import HttpMethod
 
 
-class BaseClient:
+class HTTPClient:
     """
-    Main communication layer providing connection pooling, logging and retry logic.
+    Synchronous HTTP transport layer with session management and retry logic.
     """
 
     def __init__(self, base_url: str) -> None:
         self.base_url = base_url
+
         self.session: Session = requests.Session()
 
         retries = Retry(
@@ -32,11 +33,35 @@ class BaseClient:
         )
 
         adapter = HTTPAdapter(max_retries=retries)
+
         self.session.mount("http://", adapter)
+
         self.session.mount("https://", adapter)
 
+    def request(self, method: str, url: str, **kwargs: Any) -> Response:
+        return self.session.request(method=method, url=url, timeout=(10, 30), **kwargs)
+
+
+class BaseAPIClient:
+    """
+    Abstract API client providing shared infrastructure for test orchestration:
+    logging, Allure reporting, and automatic Pydantic model serialization.
+    """
+
+    def __init__(self, base_url: str) -> None:
+        self._http = HTTPClient(base_url)
+
+    @property
+    def session(self) -> Session:
+        return self._http.session
+
     def _request(self, method: str, endpoint: str, **kwargs: Any) -> Response:
-        url = urljoin(self.base_url, endpoint)
+        """
+        Executes request through transport layer with
+        integrated reporting and error mapping.
+        """
+
+        url = urljoin(self._http.base_url, endpoint)
 
         logger.debug(f"Request: {method} {url} | Body: {kwargs.get('json')}")
 
@@ -49,9 +74,7 @@ class BaseClient:
                 )
 
             try:
-                response = self.session.request(
-                    method=method, url=url, timeout=(10, 30), **kwargs
-                )
+                response = self._http.request(method=method, url=url, **kwargs)
 
                 allure.attach(
                     f"Status Code: {response.status_code}\n{response.text}",
@@ -66,8 +89,10 @@ class BaseClient:
 
                 try:
                     response.raise_for_status()
+
                 except requests.HTTPError as e:
                     logger.error(f"HTTP Error: {e.response.status_code}")
+
                     raise APIClientError(
                         message=f"API Error {e.response.status_code}: {e}",
                         status_code=e.response.status_code,
@@ -78,11 +103,13 @@ class BaseClient:
 
             except requests.RequestException as e:
                 logger.error(f"Network Error: {e}")
+
                 raise APIClientError(f"Network error during {method} {url}") from e
 
     def _get_error_payload(self, response: Response) -> dict[str, Any] | None:
         try:
             return cast(dict[str, Any], response.json())
+
         except Exception:
             return None
 
@@ -90,12 +117,20 @@ class BaseClient:
         self,
         payload: BaseModel | dict[str, Any] | None,
     ) -> dict[str, Any] | None:
+        """
+        Normalizes various payload types into JSON-compatible dictionaries.
+        Supports Pydantic models with optional custom 'to_payload' methods.
+        """
+
         if payload is None:
             return None
+
         if isinstance(payload, BaseModel):
             if hasattr(payload, "to_payload"):
                 return payload.to_payload()  # type: ignore
+
             return payload.model_dump(by_alias=True, mode="json")
+
         return payload
 
     def get(self, endpoint: str, **kwargs: Any) -> Response:
@@ -108,6 +143,7 @@ class BaseClient:
         **kwargs: Any,
     ) -> Response:
         json_data = self._prepare_payload(payload)
+
         return self._request(HttpMethod.POST, endpoint, json=json_data, **kwargs)
 
     def put(
@@ -117,6 +153,7 @@ class BaseClient:
         **kwargs: Any,
     ) -> Response:
         json_data = self._prepare_payload(payload)
+
         return self._request(HttpMethod.PUT, endpoint, json=json_data, **kwargs)
 
     def patch(
@@ -126,6 +163,7 @@ class BaseClient:
         **kwargs: Any,
     ) -> Response:
         json_data = self._prepare_payload(payload)
+
         return self._request(HttpMethod.PATCH, endpoint, json=json_data, **kwargs)
 
     def delete(self, endpoint: str, **kwargs: Any) -> Response:
