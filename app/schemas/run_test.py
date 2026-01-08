@@ -6,9 +6,9 @@ from pydantic import BaseModel, Field, PositiveInt
 class BrowserType(StrEnum):
     """Supported browser types for UI testing."""
 
-    CHROME = "chrome"
+    CHROMIUM = "chromium"
     FIREFOX = "firefox"
-    SAFARI = "safari"
+    WEBKIT = "webkit"
 
 
 class TestRunRequest(BaseModel):
@@ -25,7 +25,7 @@ class TestRunRequest(BaseModel):
         description="Path or identifier of the test suite",
     )
     browser: BrowserType = Field(
-        default=BrowserType.CHROME,
+        default=BrowserType.CHROMIUM,
         description="Target browser for UI tests",
     )
     headless: bool = Field(
