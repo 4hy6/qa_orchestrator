@@ -35,8 +35,8 @@ def client() -> Generator[BookerClient, None, None]:
 @pytest.fixture(scope="session")
 def auth_token(client: BookerClient) -> str:
     token = client.create_auth_token(
-        username=settings.booker_username,
-        password=settings.booker_password,
+        username=settings.booker.username,
+        password=settings.booker.password,
     )
     return token
 

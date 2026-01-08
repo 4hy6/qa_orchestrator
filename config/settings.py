@@ -5,6 +5,41 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 
 from app.exceptions import ConfigurationError
 
+COMMON_CONFIG = SettingsConfigDict(
+    env_file=".env", env_file_encoding="utf-8", extra="ignore"
+)
+
+
+class DatabaseSettings(BaseSettings):
+    user: str = Field(default="postgres", validation_alias="POSTGRES_USER")
+    password: SecretStr = Field(
+        default=SecretStr("postgres"), validation_alias="POSTGRES_PASSWORD"
+    )
+    db_name: str = Field(default="qa_orchestrator_db", validation_alias="POSTGRES_DB")
+    host: str = Field(default="localhost", validation_alias="POSTGRES_HOST")
+    port: int = Field(default=5432, validation_alias="POSTGRES_PORT")
+
+    @computed_field  # type: ignore[prop-decorator]
+    @property
+    def url(self) -> str:
+        """
+        Constructs the SQLAlchemy database URL.
+        Format: postgresql://user:password@host:port/dbname
+        """
+        return (
+            f"postgresql://{self.user}:{self.password.get_secret_value()}"
+            f"@{self.host}:{self.port}/{self.db_name}"
+        )
+
+    model_config = COMMON_CONFIG
+
+
+class BookerSettings(BaseSettings):
+    username: str = Field(..., validation_alias="BOOKER_USERNAME")
+    password: str = Field(..., validation_alias="BOOKER_PASSWORD")
+
+    model_config = COMMON_CONFIG
+
 
 class Settings(BaseSettings):
     app_env: Literal["dev", "test", "prod"] = Field(default="dev")
@@ -13,33 +48,10 @@ class Settings(BaseSettings):
         default="INFO"
     )
 
-    booker_username: str = Field(description="Username for Booker API")
-    booker_password: str = Field(description="Password for Booker API")
+    db: DatabaseSettings = Field(default_factory=DatabaseSettings)
+    booker: BookerSettings = Field(default_factory=BookerSettings)  # type: ignore[arg-type]
 
-    # Database Settings
-    postgres_user: str = Field(default="postgres")
-    postgres_password: SecretStr = Field(default=SecretStr("postgres"))
-    postgres_db: str = Field(default="qa_orchestrator_db")
-    postgres_host: str = Field(default="localhost")
-    postgres_port: int = Field(default=5432)
-
-    @computed_field  # type: ignore[prop-decorator]
-    @property
-    def database_url(self) -> str:
-        """
-        Constructs the SQLAlchemy database URL.
-        Format: postgresql://user:password@host:port/dbname
-        """
-        return (
-            f"postgresql://{self.postgres_user}:{self.postgres_password.get_secret_value()}"
-            f"@{self.postgres_host}:{self.postgres_port}/{self.postgres_db}"
-        )
-
-    model_config = SettingsConfigDict(
-        env_file=".env",
-        env_file_encoding="utf-8",
-        extra="ignore",
-    )
+    model_config = COMMON_CONFIG
 
 
 try:

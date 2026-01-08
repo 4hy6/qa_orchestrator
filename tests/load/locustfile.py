@@ -14,8 +14,8 @@ class BookerUser(HttpUser):
 
     def on_start(self) -> None:
         payload = AuthRequest(
-            username=settings.booker_username,
-            password=settings.booker_password,
+            username=settings.booker.username,
+            password=settings.booker.password,
         ).to_payload()
 
         with self.client.post("/auth", json=payload, catch_response=True) as response:

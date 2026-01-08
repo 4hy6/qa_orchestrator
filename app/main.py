@@ -30,7 +30,7 @@ def main() -> None:
 
     try:
         token = client.create_auth_token(
-            username=settings.booker_username, password=settings.booker_password
+            username=settings.booker.username, password=settings.booker.password
         )
         logger.info(f"Authentication successful. Session Token: {token[:5]}***")
     except Exception as e:
